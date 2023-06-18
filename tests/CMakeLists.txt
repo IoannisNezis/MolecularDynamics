@@ -3,9 +3,9 @@ include(GoogleTest)
 
 # Fetching Googletest library
 FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/refs/tags/release-1.12.1.tar.gz
-  URL_HASH SHA256=81964fe578e9bd7c94dfdb09c8e4d6e6759e19967e397dbea48d1c10e45d0df2
+        googletest
+        URL https://github.com/google/googletest/archive/refs/tags/release-1.12.1.tar.gz
+        URL_HASH SHA256=81964fe578e9bd7c94dfdb09c8e4d6e6759e19967e397dbea48d1c10e45d0df2
 )
 
 FetchContent_MakeAvailable(googletest)
@@ -15,12 +15,15 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 # Define headers and test implementation files
 set(MY_TESTS_HEADERS
-  # empty so far
-)
+        # empty so far
+        )
 
 set(MY_TESTS_CPP
-  test_hello_world.cpp
-)
+        test_hello_world.cpp
+        verlet_test.cpp
+        test_lj_direct_summation.cpp
+        test_neighbors.cpp
+        )
 
 # Creating the test executable
 add_executable(my_tests ${MY_TESTS_CPP} ${MY_TESTS_HEADERS})

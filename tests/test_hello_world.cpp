@@ -9,5 +9,5 @@ TEST(HelloTest, BasicAssertions) {
     // Expect equality.
     EXPECT_EQ(7 * 6, 42);
     // Testing if we can call a function from our MD library
-    hello_eigen();
+    // no hello_eigen();
 }

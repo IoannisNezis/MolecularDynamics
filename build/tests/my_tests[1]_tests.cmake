@@ -1,0 +1,7 @@
+add_test([=[HelloTest.BasicAssertions]=]  [==[/home/ianni/current_semester/Molecular Dynamics/MolecularDynamics/build/tests/my_tests]==] [==[--gtest_filter=HelloTest.BasicAssertions]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[HelloTest.BasicAssertions]=]  PROPERTIES WORKING_DIRECTORY [==[/home/ianni/current_semester/Molecular Dynamics/MolecularDynamics/build/tests]==] SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+add_test([=[VERLETTEST.BasicAssertions]=]  [==[/home/ianni/current_semester/Molecular Dynamics/MolecularDynamics/build/tests/my_tests]==] [==[--gtest_filter=VERLETTEST.BasicAssertions]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[VERLETTEST.BasicAssertions]=]  PROPERTIES WORKING_DIRECTORY [==[/home/ianni/current_semester/Molecular Dynamics/MolecularDynamics/build/tests]==] SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+add_test([=[LJDirectSummationTest.Forces]=]  [==[/home/ianni/current_semester/Molecular Dynamics/MolecularDynamics/build/tests/my_tests]==] [==[--gtest_filter=LJDirectSummationTest.Forces]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[LJDirectSummationTest.Forces]=]  PROPERTIES WORKING_DIRECTORY [==[/home/ianni/current_semester/Molecular Dynamics/MolecularDynamics/build/tests]==] SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+set(  my_tests_TESTS HelloTest.BasicAssertions VERLETTEST.BasicAssertions LJDirectSummationTest.Forces)

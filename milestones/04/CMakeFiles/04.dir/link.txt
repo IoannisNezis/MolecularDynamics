@@ -1,0 +1,1 @@
+/usr/bin/c++ -g -Wl,-rpath -Wl,/usr/lib -Wl,--enable-new-dtags CMakeFiles/04.dir/main.cpp.o -o 04  ../../src/libmy_md_lib.a /usr/lib/libmpi_cxx.so /usr/lib/libmpi.so 
