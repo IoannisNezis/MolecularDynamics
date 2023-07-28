@@ -9,12 +9,12 @@ void verlet_step1(double &x, double &y, double &z, double &vx, double &vy, doubl
                   double fx, double fy, double fz, double dt);
 
 void verlet_step1(Positions_t &positions, Velocities_t &velocities,
-                  const Forces_t &forces, const Masses &masses, double dt);
+                  const Forces_t &forces, const Masses_t &masses, double dt);
 
 void verlet_step2(double &vx, double &vy, double &vz, double fx, double fy, double fz,
                   double dt);
 
-void verlet_step2(Velocities_t &velocities, const Forces_t &forces,const Masses &masses, double dt);
+void verlet_step2(Velocities_t &velocities, const Forces_t &forces,const Masses_t &masses, double dt);
 
 
 void verlet_step1(Atoms &atoms, double dt);

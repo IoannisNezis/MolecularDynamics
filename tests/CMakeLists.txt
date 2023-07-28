@@ -23,6 +23,10 @@ set(MY_TESTS_CPP
         verlet_test.cpp
         test_lj_direct_summation.cpp
         test_neighbors.cpp
+        test_thermostat.cpp
+        test_ducastelle.cpp
+        test_eigennotation.cpp
+        test_timestep_gold_potential.cpp
         )
 
 # Creating the test executable

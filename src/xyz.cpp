@@ -27,6 +27,7 @@
 #include <iostream>
 
 #include "xyz.h"
+#include "domain.h"
 
 std::tuple<Names_t, Positions_t> read_xyz(const std::string &filename) {
     std::ifstream file(filename);
@@ -101,14 +102,27 @@ std::tuple<Names_t, Positions_t, Velocities_t> read_xyz_with_velocities(const st
     }
 }
 
-
-void write_xyz(std::ofstream &file, Atoms &atoms) {
+void write_xyz(std::ofstream &file, Atoms &atoms, Domain &domain) {
     // Number of atoms
     file << atoms.nb_atoms() << std::endl;
 
     // Comment line
     file << std::endl;
+    //std::cout << domain.get_coordinate(atoms)
+    // Element name, position
+    for (int i = 0; i < atoms.nb_atoms(); ++i) {
+        file << std::setw(2) << "Au" << " "
+             << std::setw(10) << atoms.positions.col(i).transpose()
+             << std::setw(10) << atoms.velocities.col(i).transpose()
+             << std::endl;
+    }
+}
 
+void write_xyz(std::ofstream &file, Atoms &atoms) {
+    // Number of atoms
+    file << atoms.nb_atoms() << std::endl;
+    // Comment line
+    file << std::endl;
     // Element name, position
     for (int i = 0; i < atoms.nb_atoms(); ++i) {
         file << std::setw(2) << "Au" << " "

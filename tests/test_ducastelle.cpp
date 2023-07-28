@@ -24,32 +24,52 @@
 
 #include <gtest/gtest.h>
 
-#include "lj_direct_summation.h"
 #include "atoms.h"
+#include "ducastelle.h"
+#include "neighbors.h"
 
-TEST(LJDirectSummationTest, Forces) {
-    constexpr int nb_atoms = 10;
-    constexpr double epsilon = 0.7;  // choose different to 1 to pick up missing factors
-    constexpr double sigma = 0.3;
+TEST(DucastelleTest, Forces) {
+    constexpr int nx = 2, ny = 2, nz = 2;
+    constexpr double lattice_constant = 1.5;
+    constexpr double cutoff = 5.0;
     constexpr double delta = 0.0001;  // difference used for numerical (finite difference) computation of forces
 
-    Atoms atoms(nb_atoms);
-    atoms.positions.setRandom();  // random numbers between -1 and 1
+    double A = 0.2061, xi = 1.790, p = 10.229, q = 4.036, re = 4.079/sqrt(2);
 
-    // compute and store energy of the indisturbed configuration
-    double e0{lj_direct_summation(atoms, epsilon, sigma)};
+    NeighborList neighbor_list(cutoff);
+
+    Atoms atoms(nx * ny * nz);
+
+    // we create a cubic lattice with random displacements
+    atoms.positions.setRandom();  // random numbers between -1 and 1
+    atoms.positions *= 0.1;
+    for (int x{0}, i{0}; x < nx; ++x) {
+        for (int y{0}; y < ny; ++y) {
+            for (int z{0}; z < nz; ++z, ++i) {
+                atoms.positions(0, i) += x * lattice_constant;
+                atoms.positions(1, i) += y * lattice_constant;
+                atoms.positions(2, i) += z * lattice_constant;
+            }
+        }
+    }
+
+    neighbor_list.update(atoms);
+    atoms.forces.setZero();
+    double e0{ducastelle(atoms, neighbor_list, cutoff, A, xi, p, q, re)};
     Forces_t forces0{atoms.forces};
 
     // loop over all atoms and compute forces from a finite differences approximation
-    for (int i{0}; i < nb_atoms; ++i) {
+    for (int i{0}; i < atoms.nb_atoms(); ++i) {
         // loop over all Cartesian directions
         for (int j{0}; j < 3; ++j) {
             // move atom to the right
             atoms.positions(j, i) += delta;
-            double eplus{lj_direct_summation(atoms, epsilon, sigma)};
+            neighbor_list.update(atoms);
+            double eplus{ducastelle(atoms, neighbor_list, cutoff, A, xi, p, q, re)};
             // move atom to the left
             atoms.positions(j, i) -= 2 * delta;
-            double eminus{lj_direct_summation(atoms, epsilon, sigma)};
+            neighbor_list.update(atoms);
+            double eminus{ducastelle(atoms, neighbor_list, cutoff, A, xi, p, q, re)};
             // move atom back to original position
             atoms.positions(j, i) += delta;
 
@@ -57,11 +77,7 @@ TEST(LJDirectSummationTest, Forces) {
             double fd_force{-(eplus - eminus) / (2 * delta)};
 
             // check whether finite-difference and analytic forces agree
-            if (abs(forces0(j, i)) > 1e-10) {
-                EXPECT_NEAR(abs(fd_force - forces0(j, i)) / forces0(j, i), 0, 1e-4);
-            } else {
-                EXPECT_NEAR(fd_force, forces0(j, i), 1e-10);
-            }
+            EXPECT_NEAR(fd_force, forces0(j, i), 1e-5);
         }
     }
 }

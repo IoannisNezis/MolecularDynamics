@@ -7,6 +7,11 @@ set(MY_MD_HEADERS
   lj_direct_summation.h
   xyz.h
   neighbors.h
+  lj_neighbors_list.h
+  thermostat.h
+  ducastelle.h
+  mpi_support.h
+  domain.h
 )
 
 # List of implementation files
@@ -16,6 +21,10 @@ set(MY_MD_CPP
   lj_direct_summation.cpp
   xyz.cpp
   neighbors.cpp
+  lj_neighbors_list.cpp
+  thermostat.cpp
+  ducastelle.cpp
+  domain.cpp
 )
 
 # Create a static library

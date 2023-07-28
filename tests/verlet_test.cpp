@@ -14,7 +14,7 @@ void compare(const Eigen::Array3Xd &real, const Eigen::Array3Xd &expected) {
 }
 
 void get_expected_pos_and_vel(Positions_t &exp_pos, Positions_t &init_pos, Velocities_t &exp_vel, Velocities_t &init_vel,
-                              const Forces_t &forces, const Masses &masses, const double time) {
+                              const Forces_t &forces, const Masses_t &masses, const double time) {
     exp_pos = 0.5 * (forces.rowwise() / masses.transpose()) * std::pow(time, 2) + init_vel * time + init_pos;
     exp_vel = (forces.rowwise() / masses.transpose()) * time + init_vel;
 }
@@ -24,7 +24,7 @@ TEST(VERLETTEST, BasicAssertions) {
                   {1, 2},
                   {1, 2}};
 
-    Masses b{{2},
+    Masses_t b{{2},
              {2}};
     int nb_steps = 10;
     int nb_atoms = 2;
@@ -36,7 +36,7 @@ TEST(VERLETTEST, BasicAssertions) {
     velocitys.setRandom();
     Forces_t forces(3, nb_atoms);
     forces.setRandom();
-    Masses masses(nb_atoms);
+    Masses_t masses(nb_atoms);
     masses.setRandom();
     // 2. Initial positions needs to be saved for testting
     Positions_t positions_initial = {positions};

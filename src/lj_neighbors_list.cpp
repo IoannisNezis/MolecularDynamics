@@ -1,26 +1,28 @@
 //
 // Created by ianni on 6/7/23.
 //
-#include "neighbors.h"
-#include <Eigen/Dense>
+#include "lj_neighbors_list.h"
 
-double lj_neighbors_list(const NeighborList &neighborList, const double epsilon, const double sigma, const double cutoff_radius) {
+double lj_neighbors_list(Atoms &atoms, const NeighborList &neighbor_list, const double epsilon, const double sigma, const double cutoff_radius, const double cutoff_energy) {
+
     atoms.forces.setZero();
-    auto N = atoms.nb_atoms();
     double Epot = 0;
-    Eigen::Vector3d distance;
+    Eigen::Vector3d  offset;
     double forceScale;
     double temp;
-    for (int i = 0; i < N; ++i) {
-        for (int j = i + 1; j < N; ++j) {
-            distance = atoms.positions.col(j) - atoms.positions.col(i);
-            temp = std::pow(sigma / distance.norm(), 6);
-            Epot += 4 * epsilon * (std::pow(temp, 2) - temp);
-            forceScale = -24 * epsilon / distance.norm() * (2 * std::pow(temp, 2) - temp);
-            atoms.forces.col(i)   += forceScale * distance.normalized().array();
-            atoms.forces.col(j) -= forceScale * distance.normalized().array();
+    for (auto[i, j]: neighbor_list) {
+        if (i < j) {
+            offset = atoms.positions.col(j) - atoms.positions.col(i);
+            if (offset.norm() <= cutoff_radius){
+                temp = std::pow(sigma / offset.norm(), 6);
+                Epot += 4 * epsilon * (std::pow(temp, 2) - temp) - cutoff_energy;
+                forceScale = -24 * epsilon / offset.norm() * (2 * std::pow(temp, 2) - temp);
+                atoms.forces.col(i)   += forceScale * offset.normalized().array();
+                atoms.forces.col(j) -= forceScale * offset.normalized().array();
+            }
         }
     }
+
     return Epot;
 }
 
