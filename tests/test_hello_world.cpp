@@ -1,5 +1,5 @@
 // Include a library file to make sure proper includes are set
-#include "hello.h"
+
 #include <gtest/gtest.h>
 
 // Demonstrate some basic assertions.
