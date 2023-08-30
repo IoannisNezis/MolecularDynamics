@@ -60,3 +60,4 @@ endif()
 add_subdirectory(src)         # Contains our MD library
 add_subdirectory(tests)       # Tests for the library
 add_subdirectory(milestones)  # Code for the different project milestones
+add_subdirectory(final)       # Final parallel Code

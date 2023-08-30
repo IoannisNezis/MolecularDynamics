@@ -1,6 +1,6 @@
 # List of headers
 set(MY_MD_HEADERS
-  hello.h
+  physics.h
   verlet.h
   types.h
   atoms.h
@@ -16,7 +16,7 @@ set(MY_MD_HEADERS
 
 # List of implementation files
 set(MY_MD_CPP
-  hello.cpp
+  physics.cpp
   verlet.cpp
   lj_direct_summation.cpp
   xyz.cpp
