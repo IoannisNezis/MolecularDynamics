@@ -58,31 +58,85 @@ public:
         partial_stress.setZero();
     }
 
+    /**
+    * Calculates the number of atoms
+    *
+    * @return number of atoms
+     */
     size_t nb_atoms() const {
+
         return positions.cols();
     }
 
+    /**
+     * Sets the mass of each atom
+     *
+     * @param mass
+     */
     void set_masses(const double mass) {
+
         masses.setOnes();
         masses *= mass;
     }
 
+    /**
+     * Calculates the kinetic energy in the system
+     *
+     * This is done with the formula:
+     * E_kin = 1/2 * m * v^2
+     *
+     * @return the kinetic energy
+     */
     double kinetic_engergy() const {
         return 0.5 * ((velocities.colwise().squaredNorm()).rowwise() * masses.transpose()).sum();
     }
 
+    /**
+     * Calculates the temperature of the system
+     *
+     * This is done with the formula:
+     * T = 2/3 * E_kin/(k_B * nb_atoms)
+     *
+     * @return temperature of the system
+     */
     double temperatur() const {
         return kinetic_energy_to_temperature(kinetic_engergy(), nb_atoms());
     }
 
+    /**
+     * Calculates the kinetic energy in the system for the first nb_local atoms
+     *
+     * This is usefull when using domain decomposition.
+     * This function ignores the ghost atoms
+     *
+     * @param nb_local number of atoms in the subdomain
+     * @return the local kinetic energy
+     */
     double local_kinetic_engergy(int nb_local) const {
         return 0.5 * ((velocities.colwise().squaredNorm()).rowwise() * masses.transpose()).leftCols(nb_local).sum();
     }
 
+    /**
+     * Calculates the temperature in the system for the first nb_local atoms
+     *
+     * This is used when using domain decomposition.
+     * This function ignores the gost atoms
+     *
+     * @param nb_local number of atoms in the subdomain
+     * @return local temperature
+     */
     double local_temperatur(int nb_local) const {
         return kinetic_energy_to_temperature(local_kinetic_engergy(nb_local), nb_local);
     }
 
+    /**
+     * Changes the number of atoms in the system.
+     *
+     * When using domain decomposition, you might want to add or remove atoms from a subdomain.
+     * This funktion is used to change the amount of atoms in a subdomain.
+     *
+     * @param new_size new number of atoms
+     */
     void resize(const int new_size) {
         positions.conservativeResize(3, new_size);
         velocities.conservativeResize(3, new_size);

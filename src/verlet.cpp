@@ -4,13 +4,17 @@
 #include <iostream>
 #include "verlet.h"
 void verlet_step1(Atoms &atoms, double dt){
-
+    // v(t + Delta t/2) = v(t) + f(t)/2m
     atoms.velocities += (0.5 * atoms.forces * dt).rowwise()/atoms.masses.transpose();
+    // r(t + Delta t) =r(t) +  v(t+Delta t/2) * Delta t
     atoms.positions  += atoms.velocities * dt;
 }
 void verlet_step2(Atoms &atoms, double dt){
+    // v(t + Delta t) = v(t + Delta t/2) + f(t+Delta t)/2m
     atoms.velocities += (0.5 * atoms.forces * dt).rowwise()/atoms.masses.transpose();
 }
+
+
 void verlet_step1(double &x, double &y, double &z, double &vx, double &vy, double &vz,
                   const double fx, const double fy, double fz, double dt) {
     vx += 0.5 * fx * dt; // mass is 1

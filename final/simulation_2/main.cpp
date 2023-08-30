@@ -33,25 +33,26 @@ void melt(const int magic_number,
         std::cout << "Input: cluster_" << magic_number << std::endl;
     }
 
+    // Read xyz file
     auto [names, positions]{read_xyz("final/simulation_2/input/cluster_" + std::to_string(magic_number) + ".xyz")};
+    // Adjust positions closer to equilibrium
     positions *= 0.978;
-    // adjust positions
+    // Calculate the size of the Cluster
     double cluster_radius = positions.row(0).maxCoeff();
     double padding = 15;
+    // Adjust positions s.t. all are >0
     positions += cluster_radius + padding / 2;
-
-    Masses_t masses{names.size()};
-    masses.setOnes();
-    masses *= 196.966570; // Mass of Gold
-    masses /= 0.009649;   // Adjust to fix the Unit of time
-    Atoms atoms = Atoms(names, positions, masses);
+    Atoms atoms = Atoms(names, positions);
+    atoms.set_masses(196.966570 / 0.009649);
     // Initializing the Domain
+    // Periodic in all directions
+    // Split twise in all directions -> 8 Subdomains
     Domain domain(MPI_COMM_WORLD,
                   {cluster_radius * 2 + padding, cluster_radius * 2 + padding, cluster_radius * 2 + padding},
                   {2, 2, 2},
                   {1, 1, 1});
 
-    // Initializing measurement
+    // Initializing measurement variables
     int heat_input_counter = 0;
     int measure_samples = 0;
     double local_kinetic_energy;
@@ -62,8 +63,9 @@ void melt(const int magic_number,
     double global_potential_energy_akku;
     double initial_potential_energy;
     double temperature;
-    const double deltaQ = temperatur_to_kinetic_energy(deltaT, atoms.nb_atoms());
 
+    // Calculate Delta Q based on Delta T
+    const double deltaQ = temperatur_to_kinetic_energy(deltaT, atoms.nb_atoms());
 
     // Initializing IO
     std::ofstream traj;
@@ -77,6 +79,7 @@ void melt(const int magic_number,
     }
 
 
+    // Enable Domain decomposition and update
     domain.enable(atoms);
     domain.update_ghosts(atoms, EAM_cutoff * 2);
     NeighborList neighbor_list(EAM_cutoff);
@@ -109,7 +112,7 @@ void melt(const int magic_number,
             measure_samples++;
         }
 
-        // Write movement data
+        // Write Data
         if (write_movement_data && !pre_heat && i % iterations_per_frame == 0) {
             domain.disable(atoms);
             neighbor_list.update(atoms);
@@ -126,7 +129,7 @@ void melt(const int magic_number,
             neighbor_list.update(atoms);
             ducastelle(atoms, neighbor_list, EAM_cutoff);
         }
-
+        // Simulation Step
         verlet_step1(atoms, timestep_fs);
         domain.exchange_atoms(atoms);
         domain.update_ghosts(atoms, EAM_cutoff * 2);
@@ -134,6 +137,8 @@ void melt(const int magic_number,
         ducastelle(atoms, neighbor_list, EAM_cutoff);
         verlet_step2(atoms, timestep_fs);
 
+        // Bring the System to start temperature with berendsen thermostat
+        // Note that this is in the decomposed state
         if (pre_heat) {
             if (i * timestep_fs <= pre_heat_duration) {
                 berendsen_thermostat(atoms, domain.nb_local(), start_temperature, timestep_fs, 1000);
@@ -145,6 +150,7 @@ void melt(const int magic_number,
                     std::cout << "Pre heating completet" << std::endl;
             }
         } else {
+            // Calculate average potential and kinetic energy
             if (phase_timer >= relaxation_time_fs) {
 
                 temperature = kinetic_energy_to_temperature(global_kinetic_energy_akku / measure_samples, magic_number);
@@ -184,18 +190,13 @@ int main(int argc, char *argv[]) {
     int rank;
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    bool is_main_rank = rank == 0;
-
-    int numbers[] = {55, 147, 309, 561, 923, 1415, 2057, 2869, 3871, 5083, 6525, 8217, 10179, 12431, 14993, 17885,
-                     21127, 24739, 28741};
-    //melt(numbers[10],12,true,2000,600,1100,2,2000);
-    //melt(numbers[10],5,true,200,500,900,0.5,8000);
     if (argc != 10) {
-        if (is_main_rank)
+        if (rank == 0)
             std::cout << "Invalid arguments amount (" << argc << "), provide cube size (int) as argument." << std::endl;
         MPI_Finalize();
         return 0;
     }
+    // Read Arguments
     int magic_number = std::stoi(argv[1]);
     double timestep_fs = std::stoi(argv[2]);
     double EAM_cutoff = std::stoi(argv[3]);
@@ -205,6 +206,7 @@ int main(int argc, char *argv[]) {
     double end_temperature = std::stoi(argv[7]);
     double deltaT = std::stoi(argv[8]);
     double relaxation_time = std::stoi(argv[9]);
+    // Start simulation
     melt(magic_number, timestep_fs, EAM_cutoff, movement_plot, iterations_per_frame, start_temperature, end_temperature,
          deltaT, relaxation_time);
 

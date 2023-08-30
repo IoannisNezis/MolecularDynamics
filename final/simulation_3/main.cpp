@@ -20,6 +20,7 @@ void pull(double timestep_fs, double EAM_cutoff, int radius, double strain_rate,
     bool is_main_rank = rank == 0;
 
     int length = 100;
+    // Calculate strech per fs based on strain rate
     double strech_per_fs = length * strain_rate / 100.0;
     int iterations_per_frame = 100;
     float iterations = max_strain / (strain_rate * timestep_fs);
@@ -42,11 +43,10 @@ void pull(double timestep_fs, double EAM_cutoff, int radius, double strain_rate,
              << "Timestep:" << timestep_fs << ", "
              << "EAM-cutoff:" << EAM_cutoff << std::endl;
     }
-
+    // Initialize MD system
     auto [names, positions]{read_xyz("final/simulation_3/input/whisker_R" + std::to_string(radius) + ".xyz")};
-
     Atoms atoms = Atoms(names, positions);
-
+    // If there already exists a inputfile use it
     if (std::filesystem::exists("final/simulation_3/input/Radius-" + std::to_string(radius) + "_T-" +
                                 std::to_string(int(inital_temperature)) + ".xyz")) {
         auto [names, positions, velocities]{read_xyz_with_velocities(
@@ -54,7 +54,7 @@ void pull(double timestep_fs, double EAM_cutoff, int radius, double strain_rate,
                 std::to_string(int(inital_temperature)) + ".xyz")};
         atoms = Atoms(names, positions, velocities);
     }
-
+    // Adjust Masses
     atoms.set_masses(196.966570 / 0.009649);
 
     double max_x = positions.row(0).maxCoeff();
@@ -72,6 +72,8 @@ void pull(double timestep_fs, double EAM_cutoff, int radius, double strain_rate,
 
 
     // Initializing the Domain
+    // Periodic in z direction
+    // split subdomains in z direction
     Eigen::Array3d
             domain_length = {int(min_x + max_x), int(min_y + max_y), int(max_z) + 1};
     Domain domain(MPI_COMM_WORLD,
@@ -96,6 +98,7 @@ void pull(double timestep_fs, double EAM_cutoff, int radius, double strain_rate,
     double global_stress, local_stress;
     double global_kineticE, local_kineticE;
 
+    // If such a input file does not exist yet, heat up and save
     if (!std::filesystem::exists("final/simulation_3/input/Radius-" + std::to_string(radius) + "_T-" +
                                  std::to_string(int(inital_temperature)) + ".xyz")) {
         if(is_main_rank)
@@ -131,8 +134,10 @@ void pull(double timestep_fs, double EAM_cutoff, int radius, double strain_rate,
         neighbor_list.update(atoms);
         ducastelle(atoms, neighbor_list, EAM_cutoff);
     }
+
+    // Core simulation loop
     for (int i = 0; i <= iterations; ++i) {
-        // Write movement data
+        // Write data
         if (i % int(iterations_per_frame) == 0) {
             domain.disable(atoms);
             neighbor_list.update(atoms);
@@ -158,6 +163,7 @@ void pull(double timestep_fs, double EAM_cutoff, int radius, double strain_rate,
             neighbor_list.update(atoms);
             ducastelle(atoms, neighbor_list, EAM_cutoff);
         }
+        // Simulation step
         verlet_step1(atoms, timestep_fs);
         domain.exchange_atoms(atoms);
         domain.update_ghosts(atoms, EAM_cutoff * 2);
