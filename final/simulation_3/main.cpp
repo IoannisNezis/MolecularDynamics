@@ -199,8 +199,5 @@ int main(int argc, char *argv[]) {
     double initial_temperature = std::atof(argv[6]);
 
     pull(timestep_fs, EAM_cutoff, radius, strain_rate, max_strain, initial_temperature);
-    // Get MPI info
-
-    //   }
     MPI_Finalize();
 }
